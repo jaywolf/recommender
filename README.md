@@ -18,8 +18,6 @@ The code is structured as follows:
 
 ## Installation and Setup
 
-Before running the application, you need to install Ollama and pull the `openchat` large language model. Follow these steps to set up your environment:
-
 ### Prerequisites
 
 Ensure you have Python installed on your system. This application requires Python 3.11 or newer.
@@ -30,9 +28,11 @@ You can install all required packages by running:
 
     pip install -r requirements.txt
 
-### Step 2: Pull the OpenChat Model
+### Step 2: Install Ollama and Pull the OpenChat Model
 
-After installing Ollama (during the previous step), pull the `openchat` model by running:
+Before running the application, you need to install Ollama and pull the `openchat` large language model. Please visit https://github.com/ollama/ollama to download and install Ollama.
+
+After installing Ollama, pull the `openchat` model by running:
 
     ollama pull openchat
 
