@@ -3,6 +3,8 @@ import ollama
 
 st.title("The Recommender")
 
+model = 'openchat'
+
 # Layout first and last name inputs into side-by-side columns
 name_col1, name_col2 = st.columns(2)
 with name_col1:
@@ -40,37 +42,34 @@ def get_llm_response(first_name, last_name, class_ids, additional_info):
     # Prepare class information without IDs
     classes_info = [f"{class_descriptions[class_id].split(' - ')[0]}: {class_descriptions[class_id].split(' - ')[1]}" for class_id in class_ids]
     
-    prompt = (f"Please write a recommendation letter for {first_name} {last_name}, "
-              f"applying for {applying_for} to {do_what}. "
-              f"The student has completed the following coursework: {'; '.join(classes_info)}. "
-              "The recommendation should be concise, focusing on the student's achievements and abilities as demonstrated through their coursework. "
-              "Use the course names and descriptions as reference. Keep the recommendation letter to a maximum of 4 paragraphs. Do not include a letter header or footer. Do not include Dear or Sincerely. Just provide the body of the letter. "
-              f"Additional context: {additional_info}")
-
-    stream = ollama.chat(
-        model='openchat',
-        messages=[{'role': 'user', 'content': prompt}],
-        stream=True,
+    prompt = (
+        f"I am a professor and need your help writing a letter of recommendation for my student. "
+        f"Please write a recommendation letter for {first_name} {last_name}, who is "
+        f"applying for {applying_for} to {do_what}. "
+        f"The student has completed the following coursework: {'; '.join(classes_info)}. "
+        f"The recommendation should be concise, focusing on the student's achievements and abilities as demonstrated through their coursework. "
+        f"Use the course names and descriptions as reference. Keep the recommendation letter to a maximum of 4 paragraphs. "
+        f"Do not include a letter header or footer. Do not include Dear or Sincerely. Just provide the body of the letter. "
+        f"Use the following additional context for creating the letter of recommendation: {additional_info}"
     )
-    
-    recommendation = ""
-    try:
-        for chunk in stream:
-            if 'message' in chunk and 'content' in chunk['message']:
-                recommendation += chunk['message']['content']
-            if 'end' in chunk:
-                break
-    except StopIteration:
-        pass
 
+
+    stream = ollama.chat(model=model, messages=[{'role': 'user', 'content': prompt}], stream=True)
+    recommendation = ""
+    for chunk in stream:
+        if 'message' in chunk and 'content' in chunk['message']:
+            recommendation += chunk['message']['content']
+        if 'end' in chunk:
+            break
     return recommendation
 
-# Button to trigger the recommendation process
+# Button to get recommendation
 if st.button("Get Recommendation"):
     if not classes_taken:
         st.error("Please select at least one class.")
     elif not student_firstname or not student_lastname:
         st.error("Please enter both first and last names.")
     else:
-        recommendation = get_llm_response(student_firstname, student_lastname, classes_taken, additional_info)
-        st.text_area("Recommendation:", value=recommendation, height=600)
+        with st.spinner("Getting recommendation..."):
+            recommendation = get_llm_response(student_firstname, student_lastname, classes_taken, additional_info)
+        st.markdown(f"**Recommendation:**\n\n{recommendation}")
