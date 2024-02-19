@@ -28,11 +28,11 @@ You can install all required packages by running:
 
     pip install -r requirements.txt
 
-### Step 2: Install Ollama and Pull the OpenChat Model
+### Step 2: Install Ollama
 
 Before running the application, you need to install Ollama and pull the `openchat` large language model. Please visit https://github.com/ollama/ollama to download and install Ollama.
 
-### Step 3: Run Ollama Serve
+### Step 3: Run Ollama Serve and Pull the OpenChat Model
 
 To make the Ollama API available for your application, run:
 
