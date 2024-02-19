@@ -32,14 +32,6 @@ You can install all required packages by running:
 
 Before running the application, you need to install Ollama and pull the `openchat` large language model. Please visit https://github.com/ollama/ollama to download and install Ollama.
 
-After installing Ollama, pull the `openchat` model by running:
-
-    ollama pull openchat
-
-This command downloads the OpenChat model to your local machine.
-OpenChat is a small LLM model that is roughlu ~4 GB download.
-Depending on your internet connection, it may take a few minutes to download Openchat.
-
 ### Step 3: Run Ollama Serve
 
 To make the Ollama API available for your application, run:
@@ -47,6 +39,14 @@ To make the Ollama API available for your application, run:
     ollama serve
 
 This command starts a local server that allows your application to communicate with the Ollama API.
+
+After installing Ollama and starting ollama serve, pull the `openchat` model by running:
+
+    ollama pull openchat
+
+This command downloads the OpenChat model to your local machine.
+OpenChat is a small LLM model that is roughlu ~4 GB download.
+Depending on your internet connection, it may take a few minutes to download Openchat.
 
 ## How to Run the Application
 
@@ -60,7 +60,7 @@ This command starts the Streamlit server and opens the application in your web b
 
 ## Dependencies
 
-To manage project dependencies, it is recommended to use a `requirements.txt` file. A typical `requirements.txt` for this project might include:
+To manage project dependencies, it is recommended to use a `requirements.txt` file. The `requirements.txt` for this project includes:
 
     streamlit
     ollama
