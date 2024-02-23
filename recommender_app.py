@@ -38,7 +38,10 @@ additional_info = st.text_area("Additional information:", placeholder="Provide a
 # Function to get the response from Ollama using the formatted prompt
 def get_llm_response(firstname, lastname, applying_for, goal_purpose, qualifications, additional_info):
     user_prompt = (
-        "You are a helpful assistant who writes concise recommendations. The recommendation must not exceed four paragraphs in length. Do not include header or footer. Do not address or sign the recommendation. Just write the body of the recommendation. "
+        "You are a helpful assistant who writes concise recommendations. "
+        "The recommendation must not exceed four paragraphs in length. "
+        "Do not include header or footer. Do not address or sign the recommendation. "
+        "Just write the body of the recommendation. "
         f"Write a recommendation for {firstname} {lastname}, "
         f"who is applying for {applying_for} to {goal_purpose}. "
         f"The person for whom the recommendation is being written has enhanced their skillset with the follows: {'; '.join([descriptions[q] for q in qualifications])}. "
