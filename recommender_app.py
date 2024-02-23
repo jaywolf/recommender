@@ -1,60 +1,68 @@
 import streamlit as st
 import ollama
+import json
+from prompt_template import format_prompt_with_template
+
+# Load descriptions from a JSON file
+with open('descriptions.json', 'r') as file:
+    descriptions = json.load(file)
 
 st.title("The Recommender")
 
+# Model to use for the recommendation
 model = 'openchat'
 
-# Layout first and last name inputs into side-by-side columns
+# Input fields for user information
 name_col1, name_col2 = st.columns(2)
 with name_col1:
-    student_firstname = st.text_input("First name:", placeholder="First name")
+    firstname = st.text_input("First name:", placeholder="First name")
 with name_col2:
-    student_lastname = st.text_input("Last name:", placeholder="Last name")
+    lastname = st.text_input("Last name:", placeholder="Last name")
 
-# Layout applying for and to do inputs into side-by-side columns
 applying_col1, applying_col2 = st.columns(2)
 with applying_col1:
     applying_for = st.text_input("Applying for:", placeholder="Example: grad school")
 with applying_col2:
-    do_what = st.text_input("To do:", placeholder="Example: to study Technology and Media")
+    goal_purpose = st.text_input("Goal:", placeholder="Example: to study Technology and Media")
 
-# Mapping of class IDs to names and descriptions
-class_descriptions = {
-    'DES117': "Interaction Design 1 - Students design and create basic static websites in HTML and CSS from scratch",
-    'DES157A': "Interaction Design 2 - Students design and build dynamic web projects in HTML, CSS and JavaScript",
-    'DES157B': "Interaction Design 3 - Students complete a full UI/UX development process and create a capstone interactive project that demonstrates the skill learned in interaction design classes",
-    'DES112': "User Interface / User Experience - Students study UI/UX processes and design interfaces for the web and create interactive prototypes for apps"
-}
-
-# Multiselect for "Classes taken:"
-classes_taken = st.multiselect(
-    'Classes taken:',
-    options=list(class_descriptions.keys()),  # Display class IDs
-    format_func=lambda x: x  # Display only class IDs in the dropdown
+# Multiselect for qualifications
+qualifications = st.multiselect(
+    'Qualifications:',
+    options=list(descriptions.keys()),
+    format_func=lambda x: f"{x} - {descriptions[x].split(' - ')[0]}"
 )
 
-# Text area for pasting in paragraphs of text
+# Text area for additional information
 additional_info = st.text_area("Additional information:", placeholder="Provide any additional information here.")
 
-# Function to send information to Ollama and get a response
-def get_llm_response(first_name, last_name, class_ids, additional_info):
-    # Prepare class information without IDs
-    classes_info = [f"{class_descriptions[class_id].split(' - ')[0]}: {class_descriptions[class_id].split(' - ')[1]}" for class_id in class_ids]
-    
-    prompt = (
-        f"I am a professor and need your help writing a letter of recommendation for my student. "
-        f"Please write a recommendation letter for {first_name} {last_name}, who is "
-        f"applying for {applying_for} to {do_what}. "
-        f"The student has completed the following coursework: {'; '.join(classes_info)}. "
-        f"The recommendation should be concise, focusing on the student's achievements and abilities as demonstrated through their coursework. "
-        f"Use the course names and descriptions as reference. Keep the recommendation letter to a maximum of 4 paragraphs. "
-        f"Do not include a letter header or footer. Do not include Dear or Sincerely. Just provide the body of the letter. "
-        f"Use the following additional context for creating the letter of recommendation: {additional_info}"
+# Function to get the response from Ollama using the formatted prompt
+def get_llm_response(firstname, lastname, applying_for, goal_purpose, qualifications, additional_info):
+    user_prompt = (
+        "You are a helpful assistant who writes concise recommendations. The recommendation must not exceed four paragraphs in length. Do not include header or footer. Do not address or sign the recommendation. Just write the body of the recommendation. "
+        f"Write a recommendation for {firstname} {lastname}, "
+        f"who is applying for {applying_for} to {goal_purpose}. "
+        f"The person for whom the recommendation is being written has enhanced their skillset with the follows: {'; '.join([descriptions[q] for q in qualifications])}. "
+        "Include the achievements and abilities demonstrated through their qualifications as context. "
+        f"Use the following additional context for writing the recommendation: {additional_info}"
     )
 
+    # Format the prompt with the template
+    formatted_prompt = format_prompt_with_template(user_prompt)
 
-    stream = ollama.chat(model=model, messages=[{'role': 'user', 'content': prompt}], stream=True)
+    # Adjust options as needed
+    options = {
+        'seed': -1
+    }
+
+    # Get the response from Ollama
+    stream = ollama.chat(
+        model=model,
+        messages=[{'role': 'user', 'content': formatted_prompt}],
+        options=options,  # Include the options dictionary here
+        stream=True
+    )
+
+    # Extract the recommendation from the stream
     recommendation = ""
     for chunk in stream:
         if 'message' in chunk and 'content' in chunk['message']:
@@ -63,13 +71,13 @@ def get_llm_response(first_name, last_name, class_ids, additional_info):
             break
     return recommendation
 
-# Button to get recommendation
-if st.button("Get Recommendation"):
-    if not classes_taken:
-        st.error("Please select at least one class.")
-    elif not student_firstname or not student_lastname:
+# Button to trigger the recommendation generation
+if st.button("Get recommendation"):
+    if not qualifications:
+        st.error("Please select at least one qualification.")
+    elif not firstname or not lastname:
         st.error("Please enter both first and last names.")
     else:
-        with st.spinner("Getting recommendation..."):
-            recommendation = get_llm_response(student_firstname, student_lastname, classes_taken, additional_info)
+        with st.spinner("Generating recommendation..."):
+            recommendation = get_llm_response(firstname, lastname, applying_for, goal_purpose, qualifications, additional_info)
         st.markdown(f"**Recommendation:**\n\n{recommendation}")
